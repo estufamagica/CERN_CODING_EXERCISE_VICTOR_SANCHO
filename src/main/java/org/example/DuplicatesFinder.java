@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class DuplicatesFinder {
-    private final int batchSize = 4;
+    private static final int BATCH_SIZE = 4;
     private final File tempFile;
 
     public DuplicatesFinder() throws IOException {
@@ -15,25 +15,23 @@ public class DuplicatesFinder {
 
     public <T extends Serializable> Stream<T> findDuplicates(Stream<T> list) {
         Iterator<T> iterator = list.iterator();
-        List<T> seen = new ArrayList<>();
-        List<T> duplicates = new ArrayList<>();
+        Set<T> duplicates = new LinkedHashSet<>();
+        Set<String> seenGlobal = new HashSet<>();
 
         try(BufferedWriter writer = new BufferedWriter(new FileWriter(this.tempFile, true))){
-            Set<String> seenGlobal = new HashSet<>();
 
             while (iterator.hasNext()){
-                List<T> batch = new ArrayList<>(batchSize);
-                for (int i = 0; i < batchSize && iterator.hasNext(); i++){
+                List<T> batch = new ArrayList<>(BATCH_SIZE);
+                for (int i = 0; i < BATCH_SIZE && iterator.hasNext(); i++){
                     batch.add(iterator.next());
                 }
 
                 Set<String> seenBatch = new HashSet<>();
-                Set<T> duplicatesBatch = new LinkedHashSet<>();
 
                 for (T item: batch){
                     String key = item.toString();
                     if(seenBatch.contains(key) || seenGlobal.contains(key)){
-                        duplicatesBatch.add(item);
+                        duplicates.add(item);
                     } else {
                         seenBatch.add(key);
                     }
@@ -45,17 +43,10 @@ public class DuplicatesFinder {
                     writer.newLine();
                 }
 
-                duplicates.addAll(duplicatesBatch);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        list.forEachOrdered(item -> {
-            if(seen.contains(item)){
-                if(!duplicates.contains(item)) duplicates.add(item);
-            } else seen.add(item);
-        });
 
         return duplicates.stream();
     }
