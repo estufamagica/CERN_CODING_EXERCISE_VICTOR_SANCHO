@@ -18,4 +18,15 @@ public class DuplicatesFinder {
 
         return duplicates.stream();
     }
+
+    /*
+    * Explanation:
+    *  - seen: stores the elements seen by the function
+    *  - duplicates: stores the elements that are duplicated in the list
+    *
+    * For each element of list, I check whether it has been seen or not. If it has, then I check if it is on the duplicated list to add it if possible.
+    * If an element has not been seen, I add it to the seen list.
+    *
+    *
+    * */
 }
